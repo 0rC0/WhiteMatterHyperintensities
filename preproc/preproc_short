@@ -1,0 +1,65 @@
+#!/usr/bin/env bash
+
+# Usage: preprocessing_draft.sh [Subject ID]
+
+sub_id=$1
+sub_dir='../../20190801'
+logfile="$sub_dir/log"
+
+function logcmd() {
+  echo "$1" >> logfile
+  echo $1
+}
+
+#Reorient T1
+logcmd "fslreorient2std $sub_dir/$sub_id/anat/$sub_id.anat.nii.gz $sub_dir/$sub_id/anat/$sub_id.anat_ro.nii.gz"
+fslreorient2std $sub_dir/$sub_id/anat/$sub_id.anat.nii.gz $sub_dir/$sub_id/anat/$sub_id.anat_ro.nii.gz
+logcmd $?
+logcmd "fslreorient2std $sub_dir/$sub_id/flair/$sub_id.flair.nii.gz $sub_dir/$sub_id/flair/$sub_id.flair_ro.nii.gz"
+fslreorient2std $sub_dir/$sub_id/flair/$sub_id.flair.nii.gz $sub_dir/$sub_id/flair/$sub_id.flair_ro.nii.gz
+logcmd $?
+
+#N4 Correction for T1 and FLAIRs
+logcmd "N4BiasFieldCorrection -d 3 -i $sub_dir/$sub_id/anat/$sub_id.anat_t1_2mniWarped.nii.gz -o $sub_dir/$sub_id/anat/$sub_id.anat_t1_2mniWarped_n4.nii.gz"
+N4BiasFieldCorrection -d 3 -i $sub_dir/$sub_id/anat/$sub_id.anat_ro.nii.gz -o $sub_dir/$sub_id/anat/$sub_id.anat_ro_n4.nii.gz
+logcmd $?
+logcmd "N4BiasFieldCorrection -d 3 -i $sub_dir/$sub_id/flair/$sub_id.flair_2t1_2mni_coreg.nii.gz -o $sub_dir/$sub_id/flair/$sub_id.flair_2t1_2mni_coreg_n4.nii.gz"
+N4BiasFieldCorrection -d 3 -i $sub_dir/$sub_id/flair/$sub_id.flair_ro.nii.gz -o $sub_dir/$sub_id/flair/$sub_id.flair_ro_n4.nii.gz
+logcmd $?
+
+#Coregister T1 to MNI
+logcmd "antsRegistrationSyNQuick.sh -d 3 -n 8 -m $sub_dir/$sub_id/anat/$sub_id.anat_ro.nii.gz -f /usr/share/fsl/data/standard/MNI152_T1_1mm.nii.gz -o $sub_dir/$sub_id/anat/$sub_id.anat_t1_2mni"
+antsRegistrationSyNQuick.sh -d 3 -n 8 -m $sub_dir/$sub_id/anat/$sub_id.anat_ro_n4.nii.gz -f /usr/share/fsl/data/standard/MNI152_T1_1mm.nii.gz -o $sub_dir/$sub_id/anat/$sub_id.anat_t1_2mni
+logcmd $?
+
+#Inverse coregistration MNI brain mask to t1
+logcmd "antsApplyTransforms"
+antsApplyTransforms -d 3 -i /usr/share/fsl/data/standard/MNI152_T1_1mm_brain_mask.nii.gz -r $sub_dir/$sub_id/anat/$sub_id.anat_ro_n4.nii.gz -t [$sub_dir/$sub_id/anat/$sub_id.anat_t1_2mni0GenericAffine.mat,1] -t $sub_dir/$sub_id/anat/${sub_id}.anat_t1_2mni1InverseWarp.nii.gz -o $sub_dir/$sub_id/anat/${sub_id}.anat_mni_mask_inversewarped.nii.gz
+logcmd $?
+
+# coregistration FLAIR to T1
+logcmd "antsRegistrationSyNQuick.sh -d3 -n8 -m $sub_dir/$sub_id/flair/$sub_id.flair_ro.nii.gz -f $sub_dir/$sub_id/anat/$sub_id.anat_ro.nii.gz -o $sub_dir/$sub_id/flair/$sub_id.flair_to_t1"
+antsRegistrationSyNQuick.sh -d3 -n8 -m $sub_dir/$sub_id/flair/$sub_id.flair_ro_n4.nii.gz -f $sub_dir/$sub_id/anat/$sub_id.anat_ro.nii.gz -o $sub_dir/$sub_id/flair/$sub_id.flair_ro_n4_2t1
+logcmd $?
+
+#Brain Extraction
+logcmd "bet $sub_dir/$sub_id/anat/$sub_id.anat_t1_2mniWarped_n4.nii.gz $sub_dir/$sub_id/anat/$sub_id.anat_t1_2mniWarped_n4_brain.nii.gz"
+bet $sub_dir/$sub_id/anat/$sub_id.anat_ro_n4.nii.gz $sub_dir/$sub_id/anat/$sub_id.anat_ro_n4_brain.nii.gz
+logcmd $?
+#Apply inverse-coregistered brain mask
+fslmaths $sub_dir/$sub_id/anat/$sub_id.anat_ro_n4_brain.nii.gz -mul $sub_dir/$sub_id/anat/${sub_id}.anat_mni_mask_inversewarped.nii.gz $sub_dir/$sub_id/anat/$sub_id.anat_ro_n4_brain_mul.nii.gz
+
+
+logcmd "fslmaths $sub_dir/$sub_id/anat/$sub_id.anat_t1_2mniWarped_n4_brain.nii.gz -bin $sub_dir/$sub_id/anat/$sub_id.anat_t1_2mniWarped_n4_brain_mask.nii.gz"
+fslmaths $sub_dir/$sub_id/anat/$sub_id.anat_ro_n4_brain_mul.nii.gz -bin $sub_dir/$sub_id/anat/$sub_id.anat_ro_n4_brain_mul_mask.nii.gz
+logcmd $?
+
+#Apply Brain Mask to FLAIR
+logcmd "fslmaths $sub_dir/$sub_id/flair/$sub_id.flair_2t1_2mni_coreg_n4.nii.gz -mul $sub_dir/$sub_id/anat/$sub_id.anat_t1_2mniWarped_n4_brain_mask.nii.gz"
+fslmaths $sub_dir/$sub_id/flair/$sub_id.flair_ro_n4_2t1Warped.nii.gz -mul $sub_dir/$sub_id/anat/$sub_id.anat_ro_n4_brain_mul_mask.nii.gz $sub_dir/$sub_id/flair/$sub_id.flair_ro_n4_2t1_brain.nii.gz
+logcmd $?
+
+# logcmd "fast"
+# fast -N -o $sub_dir/$sub_id/anat/$sub_id.anat_ro_n4_brain_seg $sub_dir/$sub_id/anat/$sub_id.anat_ro_n4_brain.nii.gz
+logcmd $?
+antsAtroposN4.sh -d 3 -a $sub_dir/$sub_id/anat/$sub_id.anat_ro_n4.nii.gz -x $sub_dir/$sub_id/anat/$sub_id.anat_ro_n4_brain_mul_mask.nii.gz -c 3 -o $sub_dir/$sub_id/anat/$sub_id.anat_ro_n4_seg
