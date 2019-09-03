@@ -42,24 +42,32 @@ logcmd "antsRegistrationSyNQuick.sh -d3 -n8 -m $sub_dir/$sub_id/flair/$sub_id.fl
 antsRegistrationSyNQuick.sh -d3 -n8 -m $sub_dir/$sub_id/flair/$sub_id.flair_ro_n4.nii.gz -f $sub_dir/$sub_id/anat/$sub_id.anat_ro.nii.gz -o $sub_dir/$sub_id/flair/$sub_id.flair_ro_n4_2t1
 logcmd $?
 
+# Segmentation
+logcmd "fast"
+fast -N -o $sub_dir/$sub_id/anat/$sub_id.anat_ro_n4_seg $sub_dir/$sub_id/anat/$sub_id.anat_ro_n4.nii.gz
+logcmd $?
+#antsAtroposN4.sh -d 3 -a $sub_dir/$sub_id/anat/$sub_id.anat_ro_n4.nii.gz -x $sub_dir/$sub_id/anat/$sub_id.anat_ro_n4_brain_mul_mask.nii.gz -c 3 -o $sub_dir/$sub_id/anat/$sub_id.anat_ro_n4_seg
+
+# Brain Mask as Sum of the tissues + binarize
+logcmd "fslmaths"
+fslmaths -add -add $sub_dir/$sub_id/anat/$sub_id.anat_ro_n4_brain_mask.nii.gz
+logcmd $?
+logcmd "fslmaths"
+fslmaths $sub_dir/$sub_id/anat/$sub_id.anat_ro_n4_brain_mask.nii.gz -bin $sub_dir/$sub_id/anat/$sub_id.anat_ro_n4_brain_mask.nii.gz
+logcmd $?
 #Brain Extraction
-logcmd "bet $sub_dir/$sub_id/anat/$sub_id.anat_t1_2mniWarped_n4.nii.gz $sub_dir/$sub_id/anat/$sub_id.anat_t1_2mniWarped_n4_brain.nii.gz"
-bet $sub_dir/$sub_id/anat/$sub_id.anat_ro_n4.nii.gz $sub_dir/$sub_id/anat/$sub_id.anat_ro_n4_brain.nii.gz
-logcmd $?
+#logcmd "bet $sub_dir/$sub_id/anat/$sub_id.anat_t1_2mniWarped_n4.nii.gz $sub_dir/$sub_id/anat/$sub_id.anat_t1_2mniWarped_n4_brain.nii.gz"
+#bet $sub_dir/$sub_id/anat/$sub_id.anat_ro_n4.nii.gz $sub_dir/$sub_id/anat/$sub_id.anat_ro_n4_brain.nii.gz
+#logcmd $?
 #Apply inverse-coregistered brain mask
-fslmaths $sub_dir/$sub_id/anat/$sub_id.anat_ro_n4_brain.nii.gz -mul $sub_dir/$sub_id/anat/${sub_id}.anat_mni_mask_inversewarped.nii.gz $sub_dir/$sub_id/anat/$sub_id.anat_ro_n4_brain_mul.nii.gz
+#fslmaths $sub_dir/$sub_id/anat/$sub_id.anat_ro_n4_brain.nii.gz -mul $sub_dir/$sub_id/anat/${sub_id}.anat_mni_mask_inversewarped.nii.gz $sub_dir/$sub_id/anat/$sub_id.anat_ro_n4_brain_mul.nii.gz
 
 
-logcmd "fslmaths $sub_dir/$sub_id/anat/$sub_id.anat_t1_2mniWarped_n4_brain.nii.gz -bin $sub_dir/$sub_id/anat/$sub_id.anat_t1_2mniWarped_n4_brain_mask.nii.gz"
-fslmaths $sub_dir/$sub_id/anat/$sub_id.anat_ro_n4_brain_mul.nii.gz -bin $sub_dir/$sub_id/anat/$sub_id.anat_ro_n4_brain_mul_mask.nii.gz
-logcmd $?
+#logcmd "fslmaths $sub_dir/$sub_id/anat/$sub_id.anat_t1_2mniWarped_n4_brain.nii.gz -bin $sub_dir/$sub_id/anat/$sub_id.anat_t1_2mniWarped_n4_brain_mask.nii.gz"
+#fslmaths $sub_dir/$sub_id/anat/$sub_id.anat_ro_n4_brain_mul.nii.gz -bin $sub_dir/$sub_id/anat/$sub_id.anat_ro_n4_brain_mul_mask.nii.gz
+#logcmd $?
 
 #Apply Brain Mask to FLAIR
-logcmd "fslmaths $sub_dir/$sub_id/flair/$sub_id.flair_2t1_2mni_coreg_n4.nii.gz -mul $sub_dir/$sub_id/anat/$sub_id.anat_t1_2mniWarped_n4_brain_mask.nii.gz"
-fslmaths $sub_dir/$sub_id/flair/$sub_id.flair_ro_n4_2t1Warped.nii.gz -mul $sub_dir/$sub_id/anat/$sub_id.anat_ro_n4_brain_mul_mask.nii.gz $sub_dir/$sub_id/flair/$sub_id.flair_ro_n4_2t1_brain.nii.gz
-logcmd $?
-
-# logcmd "fast"
-# fast -N -o $sub_dir/$sub_id/anat/$sub_id.anat_ro_n4_brain_seg $sub_dir/$sub_id/anat/$sub_id.anat_ro_n4_brain.nii.gz
-logcmd $?
-antsAtroposN4.sh -d 3 -a $sub_dir/$sub_id/anat/$sub_id.anat_ro_n4.nii.gz -x $sub_dir/$sub_id/anat/$sub_id.anat_ro_n4_brain_mul_mask.nii.gz -c 3 -o $sub_dir/$sub_id/anat/$sub_id.anat_ro_n4_seg
+#logcmd "fslmaths $sub_dir/$sub_id/flair/$sub_id.flair_2t1_2mni_coreg_n4.nii.gz -mul $sub_dir/$sub_id/anat/$sub_id.anat_t1_2mniWarped_n4_brain_mask.nii.gz"
+#fslmaths $sub_dir/$sub_id/flair/$sub_id.flair_ro_n4_2t1Warped.nii.gz -mul $sub_dir/$sub_id/anat/$sub_id.anat_ro_n4_brain_mul_mask.nii.gz $sub_dir/$sub_id/flair/$sub_id.flair_ro_n4_2t1_brain.nii.gz
+#logcmd $?
