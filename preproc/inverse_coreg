@@ -1,0 +1,59 @@
+#!/bin/bash
+
+# In the WMH prediction are often present voxels from GM
+# A direct 3-tissue segmentation segments the WMLs as GM
+# To delete the GM voxels from the prediction
+# - The T1ws are coregistered to MNI
+# - The inverese coregistration is applyed to the WM + CSF mask from MNI standard
+# - The mask resulting from the addiction of the 2, are applyed to the prediciton
+# [Hammers, Allom et al. 2003, Gousias IS et al. 2008])
+
+function do_the_job() {
+  local sub=$1
+  echo $sub
+  cd $out_dir/$sub
+  #cp ./flair/$sub.flair_ro.nii.gz ./
+  #cp ./anat/$sub.anat_ro.nii.gz ./
+  #gzip -fd *.gz
+  #matlab -nodisplay -nodesktop -nosplash -nojvm -r "ps_LST_lga('./$sub.anat_ro.nii', './$sub.flair_ro.nii',$kappa, 1, 50, 0);exit"
+  if [ ! -e ./anat/${sub}.anat_ro_n4_2mni1InverseWarp.nii.gz ]
+  then
+    antsRegistrationSyNQuick.sh \
+        -d 3 \
+        -n 2 \
+        -m ./anat/${sub}.anat_ro_n4.nii.gz \
+        -f ../../MNITemplate/inst/extdata/MNI152_T1_1mm.nii.gz \
+        -o ./anat/${sub}.anat_ro_n4_2mni
+  fi
+  for num in {0..2}
+  do
+    if [ ! -e ./anat/${sub}_Brain_FAST_pve_${num}_anatcoreg.nii.gz ]
+    then
+      antsApplyTransforms \
+          -d 3 \
+          -i ../../MNITemplate/inst/extdata/MNI152_T1_1mm_Brain_FAST_pve_${num}.nii.gz \
+          -r ./anat/${sub}.anat_ro_n4.nii.gz \
+          -t [./anat/${sub}.anat_ro_n4_2mni0GenericAffine.mat,1] \
+          -t ./anat/${sub}.anat_ro_n4_2mni1InverseWarp.nii.gz \
+          -o ./anat/${sub}_Brain_FAST_pve_${num}_anatcoreg.nii.gz
+    fi
+  done
+
+}
+
+
+out_dir="../20190801"
+N=4 # number of parallel processes = cores/2 (ants uses 2*process)
+
+cd $out_dir
+subs=($(ls -d S*))
+#subs=( "SMART001" "SMART002")
+echo ${subs[@]}
+
+for s in ${subs[@]}; do
+   ((i=i%N)); ((i++==0)) && wait
+   do_the_job $s &
+done
+wait
+
+exit 0
