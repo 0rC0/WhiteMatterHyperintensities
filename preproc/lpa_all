@@ -1,0 +1,17 @@
+#!/bin/bash
+
+raw_data_dir="/media/drive_s/AG/AG-Floeel-Imaging/02-User/SMARTAGE"
+out_dir="$HOME/AndreaDellOrco/WhiteMatterLesions/20190801"
+
+cd $raw_data_dir
+subs=($(ls -d SMART*))
+#subs=( "SMART001")
+echo ${subs[@]}
+
+for sub in ${subs[@]}
+do
+  echo $sub
+  cd $out_dir/$sub/flair
+  gzip -kfd "$sub.flair_ro_n4_2t1Warped.nii.gz"
+  matlab -nodisplay -nodesktop -nosplash -nojvm -r "ps_LST_lpa('./$sub.flair_ro_n4_2t1Warped.nii','',0);exit"
+done
