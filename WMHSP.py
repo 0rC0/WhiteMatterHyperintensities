@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+
+import joblib
 """
 Created on Wed Jul 15 12:43:32 2017
 ######################################################################################################################################
@@ -47,6 +49,7 @@ Classifier Options:
 """
 def doPreprocessing(path_nlin_mask,path_Temp, ID_Test, WMH_Files_Test , wmh, T1_Files_Test , t1 , T2_Files_Test , t2 , PD_Files_Test , pd , FLAIR_Files_Test , flair ,  path_av_t1 , path_av_t2 , path_av_pd , path_av_flair):
     import os
+
     nlmf = 'Y'
     nuf = 'Y'
     volpolf = 'Y'
@@ -65,41 +68,52 @@ def doPreprocessing(path_nlin_mask,path_Temp, ID_Test, WMH_Files_Test , wmh, T1_
         if (t1 != ''):
             str_File_t1 = str(T1_Files_Test[i]).replace("[",'').replace("]",'').replace("'",'').replace(" ",'')
             if (fileFormat == 'nii'):
-                new_command = 'nii2mnc ' + str_File_t1 + ' ' + path_Temp + str(ID_Test[i]) + '_T1.mnc'      
+                new_command = '/usr/local/bin/nii2mnc ' + str_File_t1 + ' ' + path_Temp + str(ID_Test[i]) + '_T1.mnc'
             else:
                 new_command = 'cp ' + str_File_t1 + ' ' + path_Temp + str(ID_Test[i]) + '_T1.mnc'
+            print('Executing: {}'.format(new_command))
             os.system(new_command)
-            new_command = 'bestlinreg_s2 ' +  path_Temp + str(ID_Test[i]) + '_T1.mnc ' +  path_av_t1 + ' ' +  path_Temp + str(ID_Test[i]) + '_T1toTemplate.xfm'
+            new_command = '/usr/local/bin/bestlinreg_s2 ' +  path_Temp + str(ID_Test[i]) + '_T1.mnc ' +  path_av_t1 + ' ' +  path_Temp + str(ID_Test[i]) + '_T1toTemplate.xfm'
+            print('Executing: {}'.format(new_command))
             os.system(new_command)
-            new_command = 'mincresample ' +  path_nlin_mask + ' -transform ' +  path_Temp + str(ID_Test[i]) + '_T1toTemplate.xfm' + ' ' +  path_Temp + str(ID_Test[i]) + '_T1_Mask.mnc -invert_transform -like ' + path_Temp + str(ID_Test[i]) + '_T1.mnc -nearest -clobber'
+            new_command = '/usr/local/bin/mincresample ' +  path_nlin_mask + ' -transform ' +  path_Temp + str(ID_Test[i]) + '_T1toTemplate.xfm' + ' ' +  path_Temp + str(ID_Test[i]) + '_T1_Mask.mnc -invert_transform -like ' + path_Temp + str(ID_Test[i]) + '_T1.mnc -nearest -clobber'
+            print('Executing: {}'.format(new_command))
             os.system(new_command)
             str_t1_proc = path_Temp + str(ID_Test[i]) + '_T1.mnc'
             str_main_modality = str_t1_proc
             if (nlmf == 'Y'):
-                new_command = 'mincnlm -clobber -mt 1 ' + path_Temp + str(ID_Test[i]) + '_T1.mnc ' + path_Temp + str(ID_Test[i]) + '_T1_NLM.mnc -beta 0.7 -clobber'
+                new_command = '/usr/local/bin/mincnlm -clobber -mt 1 ' + path_Temp + str(ID_Test[i]) + '_T1.mnc ' + path_Temp + str(ID_Test[i]) + '_T1_NLM.mnc -beta 0.7 -clobber'
+                print('Executing: {}'.format(new_command))
                 os.system(new_command)
                 str_t1_proc = path_Temp + str(ID_Test[i]) + '_T1_NLM.mnc'
                 str_main_modality = str_t1_proc
             if (nuf == 'Y'):
-                new_command = 'nu_correct ' + path_Temp + str(ID_Test[i]) + '_T1_NLM.mnc '  + path_Temp + str(ID_Test[i]) + '_T1_N3.mnc -mask '+ path_Temp + str(ID_Test[i]) + '_T1_Mask.mnc  -iter 200 -distance 50 -clobber'
+                new_command = '/usr/local/bin/nu_correct ' + path_Temp + str(ID_Test[i]) + '_T1_NLM.mnc '  + path_Temp + str(ID_Test[i]) + '_T1_N3.mnc -mask '+ path_Temp + str(ID_Test[i]) + '_T1_Mask.mnc  -iter 200 -distance 50 -clobber'
+                print('Executing: {}'.format(new_command))
                 os.system(new_command)
                 str_t1_proc = path_Temp + str(ID_Test[i]) + '_T1_N3.mnc'
                 str_main_modality = str_t1_proc
             if (volpolf == 'Y'):
-                new_command = 'volume_pol ' + path_Temp + str(ID_Test[i]) + '_T1_N3.mnc '  + path_av_t1 + ' --order 1 --noclamp --expfile ' + path_Temp + str(ID_Test[i]) + '_T1_norm --clobber'
+                new_command = '/usr/local/bin/volume_pol ' + path_Temp + str(ID_Test[i]) + '_T1_N3.mnc '  + path_av_t1 + ' --order 1 --noclamp --expfile ' + path_Temp + str(ID_Test[i]) + '_T1_norm --clobber'
+                print('Executing: {}'.format(new_command))
                 os.system(new_command)
-                new_command = 'minccalc -expfile ' + path_Temp + str(ID_Test[i]) + '_T1_norm '  + path_Temp + str(ID_Test[i]) + '_T1_N3.mnc ' + path_Temp + str(ID_Test[i]) + '_T1_VP.mnc ' 
+                new_command = '/usr/local/bin/minccalc -expfile ' + path_Temp + str(ID_Test[i]) + '_T1_norm '  + path_Temp + str(ID_Test[i]) + '_T1_N3.mnc ' + path_Temp + str(ID_Test[i]) + '_T1_VP.mnc '
+                print('Executing: {}'.format(new_command))
                 os.system(new_command)
                 str_t1_proc = path_Temp + str(ID_Test[i]) + '_T1_VP.mnc'
                 str_main_modality = str_t1_proc
                 
-            new_command = 'bestlinreg_s2 ' +  str_t1_proc + ' ' +  path_av_t1 + ' ' +  path_Temp + str(ID_Test[i]) + '_T1toTemplate_pp_lin.xfm'
+            new_command = '/usr/local/bin/bestlinreg_s2 ' +  str_t1_proc + ' ' +  path_av_t1 + ' ' +  path_Temp + str(ID_Test[i]) + '_T1toTemplate_pp_lin.xfm'
+            print('Executing: {}'.format(new_command))
             os.system(new_command)
-            new_command = 'mincresample ' +  str_t1_proc + ' -transform ' +  path_Temp + str(ID_Test[i]) + '_T1toTemplate_pp_lin.xfm' + ' ' +  path_Temp + str(ID_Test[i]) + '_T1_lin.mnc -like ' + path_av_t1 + ' -clobber'
+            new_command = '/usr/local/bin/mincresample ' +  str_t1_proc + ' -transform ' +  path_Temp + str(ID_Test[i]) + '_T1toTemplate_pp_lin.xfm' + ' ' +  path_Temp + str(ID_Test[i]) + '_T1_lin.mnc -like ' + path_av_t1 + ' -clobber'
+            print('Executing: {}'.format(new_command))
             os.system(new_command)
-            new_command = 'nlfit_s ' + path_Temp + str(ID_Test[i]) + '_T1_lin.mnc ' +  path_av_t1 + ' ' +  path_Temp + str(ID_Test[i]) + '_T1toTemplate_pp_nlin.xfm -level 2 -clobber'
+            new_command = '/usr/local/bin/nlfit_s ' + path_Temp + str(ID_Test[i]) + '_T1_lin.mnc ' +  path_av_t1 + ' ' +  path_Temp + str(ID_Test[i]) + '_T1toTemplate_pp_nlin.xfm -level 2 -clobber'
+            print('Executing: {}'.format(new_command))
             os.system(new_command)
-            new_command = 'xfmconcat ' + path_Temp + str(ID_Test[i]) + '_T1toTemplate_pp_lin.xfm ' + path_Temp + str(ID_Test[i]) + '_T1toTemplate_pp_nlin.xfm '+ path_Temp + str(ID_Test[i]) + '_T1toTemplate_pp_both.xfm'
+            new_command = '/usr/local/bin/xfmconcat ' + path_Temp + str(ID_Test[i]) + '_T1toTemplate_pp_lin.xfm ' + path_Temp + str(ID_Test[i]) + '_T1toTemplate_pp_nlin.xfm '+ path_Temp + str(ID_Test[i]) + '_T1toTemplate_pp_both.xfm'
+            print('Executing: {}'.format(new_command))
             os.system(new_command)
 
                 
@@ -165,30 +179,30 @@ def doPreprocessing(path_nlin_mask,path_Temp, ID_Test, WMH_Files_Test , wmh, T1_
         if (flair != ''):
             str_File_flair = str(FLAIR_Files_Test[i]).replace("[",'').replace("]",'').replace("'",'').replace(" ",'')
             if (fileFormat == 'nii'):                
-                new_command = 'nii2mnc ' + str_File_flair + ' ' + path_Temp + str(ID_Test[i]) + '_FLAIR.mnc'   
+                new_command = '/usr/local/bin/nii2mnc ' + str_File_flair + ' ' + path_Temp + str(ID_Test[i]) + '_FLAIR.mnc'
             else:
                 new_command = 'cp ' + str_File_flair + ' ' + path_Temp + str(ID_Test[i]) + '_FLAIR.mnc' 
             os.system(new_command)
-            new_command = 'bestlinreg_s2 -lsq6 ' +  path_Temp + str(ID_Test[i]) + '_FLAIR.mnc '  +  path_Temp + str(ID_Test[i]) + '_T1.mnc ' + ' ' +  path_Temp + str(ID_Test[i]) + '_FLAIRtoT1.xfm'
+            new_command = '/usr/local/bin/bestlinreg_s2 -lsq6 ' +  path_Temp + str(ID_Test[i]) + '_FLAIR.mnc '  +  path_Temp + str(ID_Test[i]) + '_T1.mnc ' + ' ' +  path_Temp + str(ID_Test[i]) + '_FLAIRtoT1.xfm'
             os.system(new_command)
-            new_command = 'mincresample ' +  path_Temp + str(ID_Test[i]) + '_T1_Mask.mnc -transform ' +  path_Temp + str(ID_Test[i]) + '_FLAIRtoT1.xfm' + ' ' +  path_Temp + str(ID_Test[i]) + '_FLAIR_Mask.mnc -invert_transform -like ' + path_Temp + str(ID_Test[i]) + '_FLAIR.mnc -nearest -clobber'
+            new_command = '/usr/local/bin/mincresample ' +  path_Temp + str(ID_Test[i]) + '_T1_Mask.mnc -transform ' +  path_Temp + str(ID_Test[i]) + '_FLAIRtoT1.xfm' + ' ' +  path_Temp + str(ID_Test[i]) + '_FLAIR_Mask.mnc -invert_transform -like ' + path_Temp + str(ID_Test[i]) + '_FLAIR.mnc -nearest -clobber'
             os.system(new_command)
             str_flair_proc = path_Temp + str(ID_Test[i]) + '_FLAIR.mnc'
             str_main_modality = str_flair_proc
             if (nlmf == 'Y'):
-                new_command = 'mincnlm -clobber -mt 1 ' + path_Temp + str(ID_Test[i]) + '_FLAIR.mnc ' + path_Temp + str(ID_Test[i]) + '_FLAIR_NLM.mnc -beta 0.7 -clobber'
+                new_command = '/usr/local/bin/mincnlm -clobber -mt 1 ' + path_Temp + str(ID_Test[i]) + '_FLAIR.mnc ' + path_Temp + str(ID_Test[i]) + '_FLAIR_NLM.mnc -beta 0.7 -clobber'
                 os.system(new_command)
                 str_flair_proc = path_Temp + str(ID_Test[i]) + '_FLAIR_NLM.mnc'
                 str_main_modality = str_flair_proc
             if (nuf == 'Y'):
-                new_command = 'nu_correct ' + path_Temp + str(ID_Test[i]) + '_FLAIR_NLM.mnc '  + path_Temp + str(ID_Test[i]) + '_FLAIR_N3.mnc -mask '+ path_Temp + str(ID_Test[i]) + '_FLAIR_Mask.mnc  -iter 200 -distance 50 -clobber'
+                new_command = '/usr/local/bin/nu_correct ' + path_Temp + str(ID_Test[i]) + '_FLAIR_NLM.mnc '  + path_Temp + str(ID_Test[i]) + '_FLAIR_N3.mnc -mask '+ path_Temp + str(ID_Test[i]) + '_FLAIR_Mask.mnc  -iter 200 -distance 50 -clobber'
                 os.system(new_command)
                 str_flair_proc = path_Temp + str(ID_Test[i]) + '_FLAIR_N3.mnc'
                 str_main_modality = str_flair_proc
             if (volpolf == 'Y'):
-                new_command = 'volume_pol ' + path_Temp + str(ID_Test[i]) + '_FLAIR_N3.mnc '  + path_av_flair + ' --order 1 --noclamp --expfile ' + path_Temp + str(ID_Test[i]) + '_FLAIR_norm --clobber'
+                new_command = '/usr/local/bin/volume_pol ' + path_Temp + str(ID_Test[i]) + '_FLAIR_N3.mnc '  + path_av_flair + ' --order 1 --noclamp --expfile ' + path_Temp + str(ID_Test[i]) + '_FLAIR_norm --clobber'
                 os.system(new_command)
-                new_command = 'minccalc -expfile ' + path_Temp + str(ID_Test[i]) + '_FLAIR_norm '  + path_Temp + str(ID_Test[i]) + '_FLAIR_N3.mnc ' + path_Temp + str(ID_Test[i]) + '_FLAIR_VP.mnc ' 
+                new_command = '/usr/local/bin/minccalc -expfile ' + path_Temp + str(ID_Test[i]) + '_FLAIR_norm '  + path_Temp + str(ID_Test[i]) + '_FLAIR_N3.mnc ' + path_Temp + str(ID_Test[i]) + '_FLAIR_VP.mnc '
                 os.system(new_command)
                 str_flair_proc = path_Temp + str(ID_Test[i]) + '_FLAIR_VP.mnc'
                 str_main_modality = str_flair_proc
@@ -329,7 +343,7 @@ def load_csv(csv_file):
     data = {}
     with open(csv_file , 'r') as f:
         for r in csv.DictReader(f):
-            for k in r.iterkeys():
+            for k in r.keys(): # python2 -> iterkeys():
                 try:
                     data[k].append(r[k])
                 except KeyError:
@@ -353,7 +367,8 @@ def get_Train_Test(Indices_G , K , IDs):
 ###########################################################################################################################################################################
 def get_addressess(TestList):
           
-    InputListInfo_Test = load_csv(TestList)    
+    InputListInfo_Test = load_csv(TestList)
+    print('get_adrresses',InputListInfo_Test)
     ID_Test = InputListInfo_Test['Subjects']
     if 'XFMs' in InputListInfo_Test:    
         XFM_Files_Test = InputListInfo_Test['XFMs']
@@ -369,6 +384,7 @@ def get_addressess(TestList):
         Mask_Files_Test = ''
     if 'T1s' in InputListInfo_Test:    
         T1_Files_Test = InputListInfo_Test['T1s']
+        print('T1_Files_Test',T1_Files_Test)
         t1 = 'exists'
     else:
         t1 =''
@@ -403,11 +419,13 @@ def get_addressess(TestList):
     else:
         clsf = ''
         cls_Files_Test = ''
+    print('return',[ID_Test, XFM_Files_Test, xfmf, Mask_Files_Test, maskf, T1_Files_Test, t1, T2_Files_Test, t2, PD_Files_Test, pd, FLAIR_Files_Test, flair, WMH_Files_Test, wmh,cls_Files_Test, clsf])
     return [ID_Test, XFM_Files_Test, xfmf, Mask_Files_Test, maskf, T1_Files_Test, t1, T2_Files_Test, t2, PD_Files_Test, pd, FLAIR_Files_Test, flair, WMH_Files_Test, wmh,cls_Files_Test, clsf]
     
 ###########################################################################################################################################################################
 import sys,getopt
-def main(argv):   
+def main(argv):
+
     import minc
     import numpy as np
     import os
@@ -423,25 +441,25 @@ def main(argv):
     try:
         opts, args = getopt.getopt(argv,"hc:i:m:o:t:e:n:f:p:d:",["cfile=","ifile=","mfile=","ofile=","tfile=","efile=","nfile=","ffile=","pfile=","dfile="])
     except getopt.GetoptError:
-        print 'WMH_Segmentation_Pipeline.py -c <Classifier (Default: LDA)> -i <Input CSV File> \n -m <Template Mask File> -f <Number of Folds in K-fold Cross Validation (Default=10)>'
-        print' -o <Output Path> -t <Temp Files Path> -e <Classification Mode> -n <New Data CSV File> -p <Pre-trained Classifiers Path> -d  <Do Preprocessing>\n '
-        print 'CSV File Column Headers: Subjects, XFMs, T1s, T2s, PDs, FLAIRs, WMHs, cls, Masks\n'
-        print 'Preprocessing Options: \n Y:   Perform Preprocessing \n'
-        print 'Classification Mode Options: \n CV:   Cross Validation (On The Same Dataset) \n TT:   Train-Test Model (Training on Input CSV Data, Segment New Data, Needs an extra CSV file)\n'
-        print ' PT:   Using Pre-trained Classifiers \n'                  
-        print 'Classifier Options:\n NB:   Naive Bayes\n LDA:  Linear Discriminant Analysis\n QDA:  Quadratic Discriminant Analysis\n LR:   Logistic Regression'
-        print ' KNN:  K Nearest Neighbors \n RF:   Random Forest \n SVM:  Support Vector Machines \n Tree: Decision Tree\n Bagging\n AdaBoost'
+        print('WMH_Segmentation_Pipeline.py -c <Classifier (Default: LDA)> -i <Input CSV File> \n -m <Template Mask File> -f <Number of Folds in K-fold Cross Validation (Default=10)>')
+        print(' -o <Output Path> -t <Temp Files Path> -e <Classification Mode> -n <New Data CSV File> -p <Pre-trained Classifiers Path> -d  <Do Preprocessing>\n ')
+        print('CSV File Column Headers: Subjects, XFMs, T1s, T2s, PDs, FLAIRs, WMHs, cls, Masks\n')
+        print('Preprocessing Options: \n Y:   Perform Preprocessing \n')
+        print('Classification Mode Options: \n CV:   Cross Validation (On The Same Dataset) \n TT:   Train-Test Model (Training on Input CSV Data, Segment New Data, Needs an extra CSV file)\n')
+        print(' PT:   Using Pre-trained Classifiers \n'                  )
+        print('Classifier Options:\n NB:   Naive Bayes\n LDA:  Linear Discriminant Analysis\n QDA:  Quadratic Discriminant Analysis\n LR:   Logistic Regression')
+        print(' KNN:  K Nearest Neighbors \n RF:   Random Forest \n SVM:  Support Vector Machines \n Tree: Decision Tree\n Bagging\n AdaBoost')
         sys.exit(2)
     for opt, arg in opts:
         if opt == '-h':
-            print 'WMH_Segmentation_Pipeline.py -c <Classifier (Default: LDA)> -i <Input CSV File> \n -m <Template Mask File>  -f <Number of Folds in K-fold Cross Validation (Default=10)>'
-            print' -o <Output Path> -t <Temp Files Path> -e <Classification Mode> -n <New Data CSV File> -p <Pre-trained Classifiers Path> -d  <Do Preprocessing>\n '            
-            print 'CSV File Column Headers: Subjects, XFMs, T1s, T2s, PDs, FLAIRs, WMHs, cls, Masks\n'            
-            print 'Preprocessing Options: \n Y:   Perform Preprocessing \n'            
-            print 'Classification Mode Options: \n CV:   Cross Validation (On The Same Dataset) \n TT:   Train-Test Model (Training on Input CSV Data, Segment New Data, Needs an extra CSV file)'
-            print ' PT:   Using Pre-trained Classifiers \n'            
-            print 'Classifier Options:\n NB:   Naive Bayes\n LDA:  Linear Discriminant Analysis\n QDA:  Quadratic Discriminant Analysis\n LR:   Logistic Regression'
-            print ' KNN:  K Nearest Neighbors \n RF:   Random Forest \n SVM:  Support Vector Machines \n Tree: Decision Tree\n Bagging\n AdaBoost'
+            print('WMH_Segmentation_Pipeline.py -c <Classifier (Default: LDA)> -i <Input CSV File> \n -m <Template Mask File>  -f <Number of Folds in K-fold Cross Validation (Default=10)>')
+            print(' -o <Output Path> -t <Temp Files Path> -e <Classification Mode> -n <New Data CSV File> -p <Pre-trained Classifiers Path> -d  <Do Preprocessing>\n '            )
+            print('CSV File Column Headers: Subjects, XFMs, T1s, T2s, PDs, FLAIRs, WMHs, cls, Masks\n'            )
+            print('Preprocessing Options: \n Y:   Perform Preprocessing \n'            )
+            print('Classification Mode Options: \n CV:   Cross Validation (On The Same Dataset) \n TT:   Train-Test Model (Training on Input CSV Data, Segment New Data, Needs an extra CSV file)')
+            print(' PT:   Using Pre-trained Classifiers \n'            )
+            print('Classifier Options:\n NB:   Naive Bayes\n LDA:  Linear Discriminant Analysis\n QDA:  Quadratic Discriminant Analysis\n LR:   Logistic Regression')
+            print(' KNN:  K Nearest Neighbors \n RF:   Random Forest \n SVM:  Support Vector Machines \n Tree: Decision Tree\n Bagging\n AdaBoost')
             sys.exit()
         elif opt in ("-c", "--cfile"):
             Classifier = arg
@@ -464,14 +482,14 @@ def main(argv):
         elif opt in ("-d", "--dfile"):
             doPreprocessingf = arg            
 
-    print 'The Selected Input CSV File is ', InputList
-    print 'The Selected Classifier is ', Classifier
-    print 'The Classification Mode is ', ClassificationMode
-    print 'The Selected Template Mask is ', path_nlin_mask
-    print 'The Selected Output Path is ', path_output    
-    print 'The Assigned Temp Files Path is ', path_Temp
+    print('The Selected Input CSV File is ', InputList)
+    print('The Selected Classifier is ', Classifier)
+    print('The Classification Mode is ', ClassificationMode)
+    print('The Selected Template Mask is ', path_nlin_mask)
+    print('The Selected Output Path is ', path_output    )
+    print('The Assigned Temp Files Path is ', path_Temp)
     if (doPreprocessingf == 'Y'):
-        print 'Preprocessing:  Yes'
+        print('Preprocessing:  Yes')
     #print 'The Pre-trained Classifiers Path is ', path_trained_classifiers
     
     if (Classifier == 'NB'):
@@ -516,7 +534,7 @@ def main(argv):
         from sklearn import tree
         clf = tree.DecisionTreeClassifier()   
     else:
-        print 'The Selected Classifier Was Not Recongnized'
+        print('The Selected Classifier Was Not Recongnized')
         sys.exit()
     [IDs, XFM_Files, xfmf, Mask_Files, maskf, T1_Files, t1, T2_Files, t2, PD_Files, pd, FLAIR_Files, flair, WMH_Files, wmh,cls_Files, clsf] = get_addressess(InputList)
 ####################### Preprocessing ####################################################################################################################################
@@ -532,7 +550,7 @@ def main(argv):
             [IDs, XFM_Files, xfmf, Mask_Files, maskf, T1_Files, t1, T2_Files, t2, PD_Files, pd, FLAIR_Files, flair, WMH_Files, wmh,cls_Files, clsf] = get_addressess(path_Temp+'Preprocessed.csv')
 
         if wmh == '':    
-            print 'No WMH Labels to Train on'
+            print('No WMH Labels to Train on')
             sys.exit()
         Indices_G = np.random.permutation(len(IDs)) * n_folds / len(IDs)
         Kappa = np.zeros(shape = (len(IDs) , 1))
@@ -913,7 +931,7 @@ def main(argv):
                 ID_Subject[subject] = ID_Test[i]
                 if (np.sum(Y) + np.sum(Binary_Output)) == 0:
                     Kappa[subject] = 1
-                print Kappa[subject]
+                print(Kappa[subject])
                 subject = subject + 1
                     
                 WMT_auto = np.zeros(shape = (len(Mask) , len(Mask[0,:]) , len(Mask[0 , 0 , :])))
@@ -921,10 +939,10 @@ def main(argv):
                 out = minc.Image(data = WMT_auto)
                 out.save(name = path_output + Classifier + '_' + str_Test + '_WMH.mnc', imitate = str_Mask)
     
-        print 'Cross Validation Successfully Completed. \nKappa Values:\n'        
-        print Kappa
-        print 'Indices'
-        print Indices_G 
+        print('Cross Validation Successfully Completed. \nKappa Values:\n')
+        print(Kappa)
+        print('Indices')
+        print(Indices_G)
         print('Mean Kappa: ' + str(np.mean(Kappa)) + ' - STD Kappa: ' + str(np.std(Kappa)))  
 ###########################################################################################################################################################################    
     if ClassificationMode == 'TT':           # not checked, without flair/t1
@@ -1167,6 +1185,7 @@ def main(argv):
         clf = clf.fit(X_All , Y_All)
         saveFlag=0
         if saveFlag == 1:
+            #import joblib
             from sklearn.externals import joblib
             path_trained_classifiers='/data/ipl/ipl12/Mahsa/MICCAI_Challenge/Trained_Classifiers/'
             path_save_classifier=path_trained_classifiers+Classifier+'_CLS'+clsf+'_T1'+t1+'_T2'+t2+'_PD'+pd+'_FLAIR'+flair+'.pkl'    
@@ -1358,7 +1377,8 @@ def main(argv):
     path_av_pd=path_trained_classifiers+'Av_PD.mnc'
     path_av_flair=path_trained_classifiers+'Av_FLAIR.mnc'
     if ClassificationMode == 'PT':       
-        from sklearn.externals import joblib            
+        from sklearn.externals import joblib
+        #import joblib
         path_saved_classifier=path_trained_classifiers+Classifier+'_CLS'+clsf+'_T1'+t1+'_T2'+t2+'_PD'+pd+'_FLAIR'+flair+'.pkl'
         [ID_Test, XFM_Files_Test, xfmf, Mask_Files_Test, maskf, T1_Files_Test, t1, T2_Files_Test, t2, PD_Files_Test, pd, FLAIR_Files_Test, flair, WMH_Files_Test, wmh,cls_Files_Test, clsf] = get_addressess(TestList)            
 ############## Preprocessing ####################################################################################################################################
@@ -1367,6 +1387,7 @@ def main(argv):
             [ID_Test, XFM_Files_Test, xfmf, Mask_Files_Test, maskf, T1_Files_Test, t1, T2_Files_Test, t2, PD_Files_Test, pd, FLAIR_Files_Test, flair, WMH_Files_Test, wmh,cls_Files_Test, clsf] = get_addressess(path_Temp+'Preprocessed.csv')
 
 ########## Loading Trained Classifier ##########################################################################################################################            
+        print('path_saved_classifier',path_saved_classifier)
         clf=joblib.load(path_saved_classifier)
         if (t1 != ''):
             T1_PDF_Healthy_Tissue=joblib.load(path_trained_classifiers+'T1_HT.pkl')
@@ -1550,7 +1571,7 @@ def main(argv):
                 new_command = 'minc_qc.pl ' + str_FLAIR+' '+ str_WMHo + '_FLAIR.jpg --big --clobber  --image-range 0 200 --mask-range 0 1'
                 os.system(new_command)
     #os.system('rm ' + path_Temp + '*')
-    print 'Segmentation Successfully Completed. '
+    print('Segmentation Successfully Completed. ')
 if __name__ == "__main__":
    main(sys.argv[1:])   
 
