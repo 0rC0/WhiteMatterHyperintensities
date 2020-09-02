@@ -1,0 +1,26 @@
+#!/bin/bash
+
+cores=8
+sub_dirs=("/media/drive_s/AG/AG-Floeel-Imaging/02-User/AndreaDellOrco/WhiteMatterLesions/SMARTAGE_BIDS_T2" \
+          "/media/drive_s/AG/AG-Floeel-Imaging/02-User/AndreaDellOrco/WhiteMatterLesions/SMARTAGE_BIDS_REFs")
+
+for dir in ${sub_dirs[@]}
+do
+  cd $dir
+  subs=($(ls -1d sub-SMART*))
+  mkdir -p flaircoreg
+  cd flaircoreg
+  for sub in ${subs[@]}
+  do
+    mkdir -p $sub
+    cd $sub
+    fslreorient2std "${dir}/${sub}/anat/${sub}_FLAIR.nii.gz" "./${sub}_FLAIR_ro.nii.gz"
+    antsRegistrationSyN.sh -d 3 \
+                           -f  "${dir}/fmriprep/fmriprep/${sub}/anat/${sub}_desc-preproc_T1w.nii.gz" \
+                           -m "./${sub}_FLAIR_ro.nii.gz" \
+                           -o ${sub}_FLAIR_ro \
+                           -n $cores \
+                           -t r
+    cd ..
+  done
+done
