@@ -1,0 +1,11 @@
+#!/bin/bash
+
+mnc2nii="$HOME/WMH/WhiteMatterHyperintensities/utils/minc2nifti.py"
+mncs=($(ls *.mnc))
+
+for mnc in ${mncs[@]}
+do
+  python $mnc2nii $mnc
+done
+
+exit 0

@@ -109,7 +109,7 @@ def load_csv(csv_file):
     data = {}
     with open(csv_file , 'r') as f:
         for r in csv.DictReader(f):
-            for k in r.iterkeys():
+            for k in r.keys(): # python2 -> iterkeys():
                 try:
                     data[k].append(r[k])
                 except KeyError:
@@ -147,23 +147,23 @@ def main(argv):
     try:
         opts, args = getopt.getopt(argv,"hc:i:m:o:t:e:n:f:p:",["cfile=","ifile=","mfile=","ofile=","tfile=","efile=","nfile=","ffile=","pfile="])
     except getopt.GetoptError:
-        print 'WMH_Segmentation_Pipeline.py -c <Classifier (Default: LDA)> -i <Input CSV File> \n -m <Template Mask File> -f <Number of Folds in K-fold Cross Validation (Default=10)>'
-        print' -o <Output Path> -t <Temp Files Path> -e <Classification Mode> -n <New Data CSV File> -p <Pre-trained Classifiers Path>\n'
-        print 'CSV File Column Headers: Subjects, XFMs, T1s, T2s, PDs, FLAIRs, WMHs, cls, Masks\n'
-        print 'Classification Mode Options: \n CV:   Cross Validation (On The Same Dataset) \n TT:   Train-Test Model (Training on Input CSV Data, Segment New Data, Needs an extra CSV file)\n'
-        print ' PT:   Using Pre-trained Classifiers \n'                  
-        print 'Classifier Options:\n NB:   Naive Bayes\n LDA:  Linear Discriminant Analysis\n QDA:  Quadratic Discriminant Analysis\n LR:   Logistic Regression'
-        print ' KNN:  K Nearest Neighbors \n RF:   Random Forest \n SVM:  Support Vector Machines \n Tree: Decision Tree\n Bagging\n AdaBoost'
+        print('WMH_Segmentation_Pipeline.py -c <Classifier (Default: LDA)> -i <Input CSV File> \n -m <Template Mask File> -f <Number of Folds in K-fold Cross Validation (Default=10)>')
+        print(' -o <Output Path> -t <Temp Files Path> -e <Classification Mode> -n <New Data CSV File> -p <Pre-trained Classifiers Path>\n')
+        print('CSV File Column Headers: Subjects, XFMs, T1s, T2s, PDs, FLAIRs, WMHs, cls, Masks\n')
+        print('Classification Mode Options: \n CV:   Cross Validation (On The Same Dataset) \n TT:   Train-Test Model (Training on Input CSV Data, Segment New Data, Needs an extra CSV file)\n')
+        print(' PT:   Using Pre-trained Classifiers \n')
+        print('Classifier Options:\n NB:   Naive Bayes\n LDA:  Linear Discriminant Analysis\n QDA:  Quadratic Discriminant Analysis\n LR:   Logistic Regression')
+        print(' KNN:  K Nearest Neighbors \n RF:   Random Forest \n SVM:  Support Vector Machines \n Tree: Decision Tree\n Bagging\n AdaBoost')
         sys.exit(2)
     for opt, arg in opts:
         if opt == '-h':
-            print 'WMH_Segmentation_Pipeline.py -c <Classifier (Default: LDA)> -i <Input CSV File> \n -m <Template Mask File>  -f <Number of Folds in K-fold Cross Validation (Default=10)>'
-            print' -o <Output Path> -t <Temp Files Path> -e <Classification Mode> -n <New Data CSV File> -p <Pre-trained Classifiers Path>\n'            
-            print 'CSV File Column Headers: Subjects, XFMs, T1s, T2s, PDs, FLAIRs, WMHs, cls, Masks\n'            
-            print 'Classification Mode Options: \n CV:   Cross Validation (On The Same Dataset) \n TT:   Train-Test Model (Training on Input CSV Data, Segment New Data, Needs an extra CSV file)'
-            print ' PT:   Using Pre-trained Classifiers \n'            
-            print 'Classifier Options:\n NB:   Naive Bayes\n LDA:  Linear Discriminant Analysis\n QDA:  Quadratic Discriminant Analysis\n LR:   Logistic Regression'
-            print ' KNN:  K Nearest Neighbors \n RF:   Random Forest \n SVM:  Support Vector Machines \n Tree: Decision Tree\n Bagging\n AdaBoost'
+            print('WMH_Segmentation_Pipeline.py -c <Classifier (Default: LDA)> -i <Input CSV File> \n -m <Template Mask File>  -f <Number of Folds in K-fold Cross Validation (Default=10)>')
+            print(' -o <Output Path> -t <Temp Files Path> -e <Classification Mode> -n <New Data CSV File> -p <Pre-trained Classifiers Path>\n'            )
+            print('CSV File Column Headers: Subjects, XFMs, T1s, T2s, PDs, FLAIRs, WMHs, cls, Masks\n'            )
+            print('Classification Mode Options: \n CV:   Cross Validation (On The Same Dataset) \n TT:   Train-Test Model (Training on Input CSV Data, Segment New Data, Needs an extra CSV file)')
+            print(' PT:   Using Pre-trained Classifiers \n'            )
+            print('Classifier Options:\n NB:   Naive Bayes\n LDA:  Linear Discriminant Analysis\n QDA:  Quadratic Discriminant Analysis\n LR:   Logistic Regression')
+            print(' KNN:  K Nearest Neighbors \n RF:   Random Forest \n SVM:  Support Vector Machines \n Tree: Decision Tree\n Bagging\n AdaBoost')
             sys.exit()
         elif opt in ("-c", "--cfile"):
             Classifier = arg
@@ -184,13 +184,13 @@ def main(argv):
         elif opt in ("-p", "--pfile"):
             path_trained_classifiers = arg
 
-    print 'The Selected Input CSV File is ', InputList
-    print 'The Selected Classifier is ', Classifier
-    print 'The Classification Mode is ', ClassificationMode
-    print 'The Selected Template Mask is ', path_nlin_mask
-    print 'The Selected Output Path is ', path_output    
-    print 'The Assigned Temp Files Path is ', path_Temp
-    print 'The Pre-trained Classifiers Path is ', path_Temp
+    print ('The Selected Input CSV File is ', InputList)
+    print ('The Selected Classifier is ', Classifier)
+    print ('The Classification Mode is ', ClassificationMode)
+    print ('The Selected Template Mask is ', path_nlin_mask)
+    print ('The Selected Output Path is ', path_output    )
+    print ('The Assigned Temp Files Path is ', path_Temp)
+    print ('The Pre-trained Classifiers Path is ', path_Temp)
     
     if (Classifier == 'NB'):
         # Naive Bayes
@@ -234,7 +234,7 @@ def main(argv):
         from sklearn import tree
         clf = tree.DecisionTreeClassifier()   
     else:
-        print 'The Selected Classifier Was Not Recongnized'
+        print('The Selected Classifier Was Not Recongnized')
         sys.exit()
     
     InputListInfo = load_csv(InputList)    
@@ -268,12 +268,12 @@ def main(argv):
     if 'WMHs' in InputListInfo:    
         WMH_Files = InputListInfo['WMHs']
     else:
-        print 'No WMH Labels to Train on'
+        print('No WMH Labels to Train on')
         sys.exit()
     if 'Masks' in InputListInfo:    
         Mask_Files = InputListInfo['Masks']
     else:
-        print 'No Native Masks'
+        print('No Native Masks')
         sys.exit()
 ###########################################################################################################################################################################
     if ClassificationMode == 'CV':
@@ -656,7 +656,7 @@ def main(argv):
                 ID_Subject[subject] = ID_Test[i]
                 if (np.sum(Y) + np.sum(Binary_Output)) == 0:
                     Kappa[subject] = 1
-                print Kappa[subject]
+                print(Kappa[subject])
                 subject = subject + 1
                     
                 WMT_auto = np.zeros(shape = (len(Mask) , len(Mask[0,:]) , len(Mask[0 , 0 , :])))
@@ -664,11 +664,11 @@ def main(argv):
                 out = minc.Image(data = WMT_auto)
                 out.save(name = path_output + Classifier + '_' + str_Test + '_WMH.mnc', imitate = str_Mask)
     
-        print 'Cross Validation Successfully Completed. \nKappa Values:\n'        
-        print Kappa
-        print 'Indices'
-        print Indices_G 
-        print('Mean Kappa: ' + str(np.mean(Kappa)) + ' - STD Kappa: ' + str(np.std(Kappa)))  
+        print('Cross Validation Successfully Completed. \nKappa Values:\n')
+        print(Kappa)
+        print('Indices')
+        print(Indices_G )
+        print('Mean Kappa: ' + str(np.mean(Kappa)) + ' - STD Kappa: ' + str(np.std(Kappa)))
 ###########################################################################################################################################################################    
     if ClassificationMode == 'TT':           # not checked, without flair/t1
         K=0
@@ -929,7 +929,7 @@ def main(argv):
             
         # Training the Classifier
         clf = clf.fit(X_All , Y_All)
-        #from sklearn.externals import joblib
+        from sklearn.externals import joblib
         #path_save_classifier=path_trained_classifiers+Classifier+'_CLS'+clsf+'_T1'+t1+'_T2'+t2+'_PD'+pd+'_FLAIR'+flair+'.pkl'    
         #joblib.dump(clf,path_save_classifier)
         #if (t1 != ''):
@@ -1331,7 +1331,7 @@ def main(argv):
                 new_command = 'minc_qc.pl ' + str_FLAIR+' '+ str_WMHo + '_FLAIR.jpg --big --clobber  --image-range 0 200 --mask-range 0 1'
                 os.system(new_command)
     os.system('rm ' + path_Temp + '*')
-    print 'Segmentation Successfully Completed. '
+    print('Segmentation Successfully Completed. ')
 if __name__ == "__main__":
    main(sys.argv[1:])   
 

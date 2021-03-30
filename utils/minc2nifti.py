@@ -17,6 +17,7 @@ def minc2nii(in_file):
                        [0, 0, 0, 1]])
 
     out = Nifti1Image(minc.get_fdata(), affine=affine)
+    print('saved as {}'.format(basename + '.nii.gz'))
     save(out, basename + '.nii.gz')
 
 if __name__=="__main__":
